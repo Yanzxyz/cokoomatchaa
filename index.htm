@@ -1,87 +1,394 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login SMK Pelita</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .box {
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      text-align: center;
-      display: none;
-    }
-
-    input {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .copyright {
-      margin-top: 10px;
-      font-size: 12px;
-      color: gray;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Location Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .map-container {
+            height: 400px;
+            transition: all 0.3s ease;
+        }
+        .accuracy-circle {
+            position: absolute;
+            border: 2px dashed #3B82F6;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .ip-circle {
+            border: 2px dashed #10B981;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.3; }
+        }
+        .pulsing-dot {
+            animation: pulse 2s infinite;
+        }
+        .pin-geo {
+            color: #3B82F6;
+        }
+        .pin-ip {
+            color: #10B981;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
 </head>
-<body>
-  <!-- Login Box -->
-  <div class="box" id="loginBox" style="display: block;">
-    <h2>Login SMK Pelita</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <p class="copyright">Copyright © SMK Pelita 2022</p>
-  </div>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-blue-600 px-6 py-4">
+                <h1 class="text-2xl font-bold text-white">Advanced Location Tracker</h1>
+                <p class="text-blue-100">Track both GPS and IP-based locations</p>
+            </div>
 
-  <!-- Dashboard Box -->
-  <div class="box" id="dashboardBox">
-    <h1>Selamat Datang, COKOMATCHA!</h1>
-    <p>Ini adalah halaman dashboard setelah login berhasil.</p>
-  </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <div class="flex border-b border-gray-200">
+                        <button onclick="switchTab('gps')" class="tab-button active py-2 px-4 font-medium text-blue-600 border-b-2 border-blue-600">GPS Tracking</button>
+                        <button onclick="switchTab('ip')" class="tab-button py-2 px-4 font-medium text-gray-500 hover:text-blue-600">IP Tracking</button>
+                    </div>
 
-  <script>
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
+                    <div id="gpsTab" class="tab-content active pt-4">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <button id="trackBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                </svg>
+                                Start GPS Tracking
+                            </button>
+                            <button id="stopBtn" disabled class="px-4 py-2 bg-gray-400 text-white rounded-lg transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+                                </svg>
+                                Stop Tracking
+                            </button>
+                        </div>
 
-      if (user === "COKOMATCHA" && pass === "COKOMATCHA") {
-        // Sembunyikan login, tampilkan dashboard
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("dashboardBox").style.display = "block";
-        document.body.style.backgroundColor = "#f2f2f2";
-      } else {
-        alert("Username atau Password salah!");
-      }
-    }
-  </script>
-</body>
-</html>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">Latitude</h3>
+                                <p id="latitude" class="text-xl font-semibold">--</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">Longitude</h3>
+                                <p id="longitude" class="text-xl font-semibold">--</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">Accuracy</h3>
+                                <p id="accuracy" class="text-xl font-semibold">-- m</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                            <h3 class="text-sm font-medium text-gray-500 mb-2">Current GPS Address</h3>
+                            <p id="address" class="text-gray-700">Address will appear here once tracking starts</p>
+                        </div>
+                    </div>
+
+                    <div id="ipTab" class="tab-content pt-4">
+                        <div class="mb-4">
+                            <div class="flex items-center space-x-4">
+                                <button id="trackIpBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.797 3.556h3.998c-.124-1.414-.408-2.649-.797-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.917 7h-1.946c-.089 1.546-.383 2.97-.837 4.118A6.004 6.004 0 0013.917 11z" clip-rule="evenodd" />
+                                    </svg>
+                                    Track My IP
+                                </button>
+                                <div class="relative flex-1">
+                                    <input type="text" id="ipInput" placeholder="Or enter custom IP address" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                    <button id="trackCustomIpBtn" class="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                        Track
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">IP Address</h3>
+                                <p id="ipAddress" class="text-xl font-semibold">--</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">Approximate Location</h3>
+                                <p id="ipLocation" class="text-xl font-semibold">--</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">ISP</h3>
+                                <p id="ipIsp" class="text-gray-700">--</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">City/Region</h3>
+                                <p id="ipCityRegion" class="text-gray-700">--</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-500">Country</h3>
+                                <p id="ipCountry" class="text-gray-700">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative map-container bg-gray-200 rounded-lg overflow-hidden">
+                    <img id="mapImage" src="https://placehold.co/800x400" alt="Interactive world map showing global locations with GPS and IP tracking markers" class="w-full h-full object-cover">
+                    <div id="accuracyCircle" class="accuracy-circle hidden"></div>
+                    <div id="ipCircle" class="accuracy-circle ip-circle hidden"></div>
+                    <div id="locationPinGeo" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600 pulsing-dot" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div id="locationPinIp" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600 pulsing-dot" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <p class="text-sm text-gray-600">© 2023 Advanced Location Tracker</p>
+                    <div id="status" class="flex items-center">
+                        <span class="h-3 w-3 rounded-full bg-gray-400 mr-2"></span>
+                        <span class="text-sm text-gray-600">Not Tracking</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const trackBtn = document.getElementById('trackBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const trackIpBtn = document.getElementById('trackIpBtn');
+        const trackCustomIpBtn = document.getElementById('trackCustomIpBtn');
+        const ipInput = document.getElementById('ipInput');
+        const latitudeEl = document.getElementById('latitude');
+        const longitudeEl = document.getElementById('longitude');
+        const accuracyEl = document.getElementById('accuracy');
+        const addressEl = document.getElementById('address');
+        const ipAddressEl = document.getElementById('ipAddress');
+        const ipLocationEl = document.getElementById('ipLocation');
+        const ipIspEl = document.getElementById('ipIsp');
+        const ipCityRegionEl = document.getElementById('ipCityRegion');
+        const ipCountryEl = document.getElementById('ipCountry');
+        const statusEl = document.getElementById('status');
+        const mapImage = document.getElementById('mapImage');
+        const accuracyCircle = document.getElementById('accuracyCircle');
+        const ipCircle = document.getElementById('ipCircle');
+        const locationPinGeo = document.getElementById('locationPinGeo');
+        const locationPinIp = document.getElementById('locationPinIp');
+
+        let watchId = null;
+        let firstPosition = false;
+
+        // Function to switch between tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active', 'text-blue-600', 'border-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`.tab-button:nth-child(${tabName === 'gps' ? 1 : 2})`).classList.add('active', 'text-blue-600', 'border-blue-600');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        // Function to update the status indicator
+        function updateStatus(tracking) {
+            const indicator = statusEl.querySelector('span:first-child');
+            const text = statusEl.querySelector('span:last-child');
+            
+            if (tracking) {
+                indicator.classList.remove('bg-gray-400');
+                indicator.classList.add('bg-green-500');
+                text.textContent = 'Tracking Active';
+                text.classList.add('text-green-600');
+                text.classList.remove('text-gray-600');
+            } else {
+                indicator.classList.remove('bg-green-500');
+                indicator.classList.add('bg-gray-400');
+                text.textContent = 'Not Tracking';
+                text.classList.add('text-gray-600');
+                text.classList.remove('text-green-600');
+            }
+        }
+
+        // Function to update the map image with the current position
+        function updateMap(latitude, longitude, accuracy, isIpLocation = false) {
+            const mapSize = '800x400';
+            const zoom = isIpLocation ? 10 : 15;
+            const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${latitude},${longitude}&zoom=${zoom}&size=${mapSize}&markers=color:red%7C${latitude},${longitude}&key=YOUR_API_KEY`;
+            
+            // For demo purposes, setting a placeholder
+            mapImage.src = 'https://placehold.co/800x400';
+            
+            if (isIpLocation) {
+                // Show IP accuracy circle
+                ipCircle.style.width = `${(accuracy || 10000) * 2}px`;
+                ipCircle.style.height = `${(accuracy || 10000) * 2}px`;
+                ipCircle.style.left = `50%`;
+                ipCircle.style.top = `50%`;
+                ipCircle.classList.remove('hidden');
+                
+                // Show IP location pin
+                locationPinIp.classList.remove('hidden');
+                
+                // Hide GPS pins if they're showing
+                accuracyCircle.classList.add('hidden');
+                locationPinGeo.classList.add('hidden');
+            } else {
+                // Show GPS accuracy circle
+                accuracyCircle.style.width = `${accuracy * 2}px`;
+                accuracyCircle.style.height = `${accuracy * 2}px`;
+                accuracyCircle.style.left = `50%`;
+                accuracyCircle.style.top = `50%`;
+                accuracyCircle.classList.remove('hidden');
+                
+                // Show GPS location pin
+                locationPinGeo.classList.remove('hidden');
+                
+                // Hide IP pins if they're showing
+                ipCircle.classList.add('hidden');
+                locationPinIp.classList.add('hidden');
+            }
+        }
+
+        // Function to get address from coordinates
+        function getAddress(latitude, longitude) {
+            // This would normally use the Google Maps Geocoding API
+            // For demo purposes, we'll simulate this
+            setTimeout(() => {
+                addressEl.textContent = `Approximate location: Near ${Math.abs(latitude.toFixed(4))}°${latitude >= 0 ? 'N' : 'S'}, ${Math.abs(longitude.toFixed(4))}°${longitude >= 0 ? 'E' : 'W'}`;
+            }, 1000);
+        }
+
+        // Function to handle successful position retrieval
+        function handlePosition(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+            
+            latitudeEl.textContent = latitude.toFixed(6);
+            longitudeEl.textContent = longitude.toFixed(6);
+            accuracyEl.textContent = Math.round(accuracy);
+            
+            if (!firstPosition) {
+                updateMap(latitude, longitude, accuracy);
+                firstPosition = true;
+            }
+            
+            getAddress(latitude, longitude);
+        }
+
+        // Function to handle errors
+        function handleError(error) {
+            let message = '';
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Location access was denied. Please enable location services.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    message = 'The request to get user location timed out.';
+                    break;
+                case error.UNKNOWN_ERROR:
+                    message = 'An unknown error occurred.';
+                    break;
+            }
+            
+            addressEl.textContent = message;
+            updateStatus(false);
+            trackBtn.disabled = false;
+            stopBtn.disabled = true;
+        }
+
+        // Function to track IP location
+        async function trackIpLocation(ip = '') {
+            try {
+                let response;
+                if (ip) {
+                    // Track custom IP (would normally use an API)
+                    response = {
+                        ip: ip,
+                        city: "Jakarta",
+                        region: "DKI Jakarta",
+                        country_name: "Indonesia",
+                        latitude: -6.2088,
+                        longitude: 106.8456,
+                        org: "PT. Telekomunikasi Indonesia",
+                        accuracy_radius: 5000 // in meters
+                    };
+                } else {
+                    // Track user's own IP (would normally use an API)
+                    response = {
+                        ip: "123.45.67.89",
+                        city: "Bandung",
+                        region: "Jawa Barat",
+                        country_name: "Indonesia",
+                        latitude: -6.9147,
+                        longitude: 107.6098,
+                        org: "Internet Provider Indonesia",
+                        accuracy_radius: 3000 // in meters
+                    };
+                }
+                
+                // Update UI with IP info
+                ipAddressEl.textContent = response.ip;
+                ipIspEl.textContent = response.org;
+                ipCityRegionEl.textContent = `${response.city}, ${response.region}`;
+                ipCountryEl.textContent = response.country_name;
+                ipLocationEl.textContent = `${response.latitude.toFixed(4)}, ${response.longitude.toFixed(4)}`;
+                
+                // Update map
+                updateMap(response.latitude, response.longitude, response.accuracy_radius, true);
+                
+            } catch (error) {
+                console.error("Error tracking IP:", error);
+                ipLocationEl.textContent = "Error getting IP location";
+            }
+        }
+
+        // Event listener for track button
+        trackBtn.addEventListener('click', () => {
+            if ('geolocation' in navigator) {
+                updateStatus(true);
+                trackBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+                // Start watching position with high accuracy
+                watchId = navigator.geolocation.watchPosition(
+                    handlePosition,
+                    handleError,
+                    { 
+                        enableHighAccuracy: true,
+                        maximumAge: 10000,
+                        timeout: 5000 
+                    }
+                );
+            } else {
+                addressEl.textContent = 'Geolocation is not supported by your browser.';
+            }
+        });
+
+        // Event listener for stop button
+  
